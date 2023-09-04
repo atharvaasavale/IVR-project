@@ -1,0 +1,278 @@
+#include<LiquidCrystal.h>
+#include "Arduino.h"
+#include "SoftwareSerial.h"
+#include "DFRobotDFPlayerMini.h"
+LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);
+SoftwareSerial mySoftwareSerial(9, 10); // RX, TX
+SoftwareSerial gsm(12, 11); // RX, TX
+DFRobotDFPlayerMini myDFPlayer;
+void printDetail(uint8_t type, int value);
+int i=0;
+//char str[100];
+const int d1=5;
+const int d2=6;
+const int d3=7;
+const int d4=8;
+
+int mode=3;
+int mode1=0;
+
+char str[100],msg[32];
+char voter1[10];
+
+void setup()
+{
+  mySoftwareSerial.begin(9600);
+  gsm.begin(9600);
+  Serial.begin(9600);
+  pinMode(d1,INPUT_PULLUP);
+  pinMode(d2,INPUT_PULLUP);
+  pinMode(d3,INPUT_PULLUP);
+  pinMode(d4,INPUT_PULLUP);
+  lcd.begin(16,2);
+  lcd.clear();
+  lcd.print("   Welcome to   ");
+  lcd.setCursor(0,1);
+  lcd.print(" K.K.W.I.E.E.R. ");
+  delay(2000);
+  //Serial.println(F("DFRobot DFPlayer Mini Demo"));
+  //Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+  //gsm.println("ATD9890839206;"); 
+  //gsm.println("ATD9834418818;"); 
+  delay(10000);
+  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+   // Serial.println(F("Unable to begin:"));
+    //Serial.println(F("1.Please recheck the connection!"));
+   // Serial.println(F("2.Please insert the SD card!"));
+    /*while(true){
+      delay(0); // Code to compatible with ESP8266 watch dog.
+    }*/
+  }
+  lcd.clear();
+  lcd.print("   Welcome to   ");
+  lcd.setCursor(0,1);
+  lcd.print(" K.K.W.I.E.E.R ");
+  Serial.println(F("System On Line"));
+  for(int i =0; i<10 ; i++)
+  {
+    gsm.println("ATA\r");           //set GSM to text mode
+    delay(2000);
+  }
+  lcd.clear();
+  lcd.print("   Welcome to   ");
+  lcd.setCursor(0,1);
+  lcd.print(" K.K.W.I.E.E.R. ");
+  delay(2000);
+}
+
+void loop()
+{
+  serialEvent2();
+  if(mode==3)
+  {
+    if((gsm.available())and(mode==3))
+    {
+      char ch=(char)gsm.read();
+      str[i++]=ch;
+      gsm.println("ATA\r");           //set GSM to text mode
+      mode=0;
+      myDFPlayer.volume(1);  //Set volume value. From 0 to 30
+      myDFPlayer.play(1);
+      delay(5000);
+    }
+    //serialEvent();
+    //Serial.println("Mode1");
+    if((digitalRead(d1) == HIGH) and (digitalRead(d2) == LOW)and (digitalRead(d3) == HIGH)){
+      mode=0;
+      myDFPlayer.volume(1);  //Set volume value. From 0 to 30
+      myDFPlayer.play(1);
+      delay(5000);
+    }
+  }
+  if(mode==0)
+  {
+    if((digitalRead(d1) == HIGH) and (digitalRead(d2) == LOW)and (digitalRead(d3) == HIGH)){
+      lcd.clear();
+      lcd.print("1st Year");
+      lcd.setCursor(0,1);
+      lcd.print("Admission");
+      myDFPlayer.play(2);  //Play the first mp3
+      mode=1;
+      mode1=1;
+      delay(5000);
+    }
+    if((digitalRead(d1) == LOW) and (digitalRead(d2) == HIGH)and (digitalRead(d3) == HIGH)){
+      lcd.clear();
+      lcd.print("2nd Year");
+      lcd.setCursor(0,1);
+      lcd.print("Admission");
+      myDFPlayer.play(2);  //Play the first mp3
+      mode=1;
+      mode1=2;
+      delay(5000);
+    }
+  }
+  if(mode==1)
+  {
+    if((digitalRead(d1) == HIGH) and (digitalRead(d2) == LOW)and (digitalRead(d3) == HIGH)){
+        lcd.clear();
+        lcd.print("Circuit");
+        lcd.setCursor(0,1);
+        lcd.print("Branches");
+        myDFPlayer.play(3);  //Play the first mp3
+        delay(6000);
+        mode=0;
+        if(mode1==1)
+        {
+          Serial.println("Enquiry for First Year Circuit Branch Received");
+          gsm.println("ATH");
+          delay(5000);
+          gsm.write("AT+CMGF=1\r");           //set GSM to text mode
+          delay(1500);
+          gsm.print("AT+CMGS=\"+919890839206\"\r");   //phone number to which you want to send sms
+          delay(1000);
+          gsm.print("https://in.docworkspace.com/d/sAOYmWFik3dppy96iiaynFA");           //SMS body 
+          delay(1000); 
+          gsm.write(0x1A);           // sends ctrl+z end of message 
+          delay(1000);
+        }
+        if(mode1==2)
+        {
+          Serial.println("Enquiry for Direct Second Year Circuit Branch Received");
+          gsm.println("ATH");
+          delay(5000);
+          gsm.write("AT+CMGF=1\r");           //set GSM to text mode
+          delay(1500);
+          gsm.print("AT+CMGS=\"+919890839206\"\r");   //phone number to which you want to send sms
+          delay(1000);
+          gsm.print("https://in.docworkspace.com/d/sAHYiEa6k3dpppZWiiaynFA");           //SMS body 
+          delay(1000); 
+          gsm.write(0x1A);           // sends ctrl+z end of message 
+          delay(1000);
+        }
+    }
+    if((digitalRead(d1) == LOW) and (digitalRead(d2) == HIGH)and (digitalRead(d3) == HIGH)){
+        lcd.clear();
+        lcd.print("Non Circuit");
+        lcd.setCursor(0,1);
+        lcd.print("Branches");
+        myDFPlayer.play(3);  //Play the first mp3
+        delay(6000);
+        mode=0;
+        if(mode1==1)
+        {
+          Serial.println("Enquiry for First Year Non Circuit Branch Received");
+          gsm.println("ATH");
+          delay(5000);
+          gsm.write("AT+CMGF=1\r");           //set GSM to text mode
+          delay(1500);
+          gsm.print("AT+CMGS=\"+919890839206\"\r");   //phone number to which you want to send sms
+          delay(1000);
+          gsm.print("https://in.docworkspace.com/d/sABuCwOSk3dpp94CiiaynFA");           //SMS body 
+          delay(1000); 
+          gsm.write(0x1A);           // sends ctrl+z end of message 
+          delay(1000);
+        }
+        if(mode1==2)
+        {
+          Serial.println("Enquiry for Direct Second Year Non Circuit Branch Received");
+          gsm.println("ATH");
+          delay(5000);
+          gsm.write("AT+CMGF=1\r");           //set GSM to text mode
+          delay(1500);
+          gsm.print("AT+CMGS=\"+919890839206\"\r");   //phone number to which you want to send sms
+          delay(1000);
+          gsm.print("https://in.docworkspace.com/d/sAPUN-Jek3dpp36SiiaynFA");           //SMS body 
+          delay(1000); 
+          gsm.write(0x1A);           // sends ctrl+z end of message 
+          delay(1000);
+        }
+    }
+  }
+  //serialEvent();
+  delay(50);
+}
+
+void serialEvent()
+{
+  myDFPlayer.pause();  //pause the mp3
+  while((gsm.available())and(mode==3))
+  {
+    char ch=(char)gsm.read();
+    str[i++]=ch;
+    gsm.println("ATA\r");           //set GSM to text mode
+    mode=0;
+    myDFPlayer.volume(1);  //Set volume value. From 0 to 30
+    myDFPlayer.play(1);
+    delay(5000);
+    if(ch == 'N')
+    {
+      Serial.print("Receiving Call:");
+      Serial.println(i);
+      receive();
+      ch='A';
+    }
+    receive();
+  }
+  i=0;
+}
+
+void receive()
+{
+  delay(5000);
+  gsm.println("ATA\r");           //set GSM to text mode
+  delay(1000);
+  //myDFPlayer.play(1);  //Play the first mp3
+}
+
+
+
+void serialEvent2()
+{
+  while(Serial.available())
+  {
+    char ch=(char)Serial.read();
+    str[i++]=ch;
+    if(ch == '*')
+    {
+      lcd.clear();
+        voter1[0]=str[12];
+        voter1[1]=str[13];
+        voter1[2]=str[14];
+        voter1[3]=str[15];
+        voter1[4]=str[16];
+        voter1[5]=str[17];
+        voter1[6]=str[18];
+        voter1[7]=str[19];
+        voter1[8]=str[20];
+        voter1[9]=str[21];
+        Serial.write("AT+CMGF=1\r");           //set GSM to text mode
+        delay(1000);
+        Serial.print("AT+CMGS=\"+91");   
+        Serial.print(voter1[0]);
+        Serial.print(voter1[1]);
+        Serial.print(voter1[2]);
+        Serial.print(voter1[3]);
+        Serial.print(voter1[4]);
+        Serial.print(voter1[5]);        //phone number to which you want to send sms
+        Serial.print(voter1[6]);
+        Serial.print(voter1[7]);
+        Serial.print(voter1[8]);
+        Serial.print(voter1[9]);
+        Serial.print("\"\r");
+        delay(1000);
+        Serial.print("Thank You");           //SMS body 
+        delay(1000); 
+        Serial.write(0x1A);           // sends ctrl+z end of message
+        delay(1000);
+        Serial.println("AT+CNMI=2,2,0,0,0");
+        delay(500);
+        Serial.println("AT+CMGF=1");
+        delay(500);
+        lcd.clear();
+        lcd.print("Message Received");
+        delay(1000);
+        ch == ' ';
+      }
+    }
+  }
